@@ -1,88 +1,70 @@
-Data Visualization Final Exam
-================
-Kelin Pan
-October 8, 2018
+---
+title: "Data Visualization Final Exam"
+author: "Kelin Pan"
+date: "October 8, 2018"
+output: 
+  html_document:
+    keep_md: true
+---
 
-R Markdown
-----------
 
-################################################################################ 
 
-Title: BAN 6035: Data Visualization Final Exam
-==============================================
+## R Markdown
 
-Date: "October 8, 2018"
-=======================
+################################################################################
+# Title: BAN 6035: Data Visualization Final Exam
+# Date: "October 8, 2018"
+################################################################################  
+# 
+# YOUR NAME: Kelin Pan
+#
+################################################################################  
+# INSTRUCTIONS
+# The script to load the packages and import the data are given below.
+# Follow the instructions to make the charts below.
+################################################################################  
 
-################################################################################ 
 
-YOUR NAME: Kelin Pan
-====================
-
-################################################################################ 
-
-INSTRUCTIONS
-============
-
-The script to load the packages and import the data are given below.
-====================================================================
-
-Follow the instructions to make the charts below.
-=================================================
-
-################################################################################ 
-
-``` r
+```r
 knitr::opts_chunk$set(echo=T)
 library(tidyverse)
 ```
 
-    ## -- Attaching packages ----------------------------------------------------------- tidyverse 1.2.1 --
+```
+## -- Attaching packages ----------------------------------------------------------- tidyverse 1.2.1 --
+```
 
-    ## v ggplot2 3.0.0     v purrr   0.2.5
-    ## v tibble  1.4.2     v dplyr   0.7.6
-    ## v tidyr   0.8.1     v stringr 1.3.1
-    ## v readr   1.1.1     v forcats 0.3.0
+```
+## v ggplot2 3.0.0     v purrr   0.2.5
+## v tibble  1.4.2     v dplyr   0.7.6
+## v tidyr   0.8.1     v stringr 1.3.1
+## v readr   1.1.1     v forcats 0.3.0
+```
 
-    ## -- Conflicts -------------------------------------------------------------- tidyverse_conflicts() --
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
+```
+## -- Conflicts -------------------------------------------------------------- tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+```
 
-``` r
+```r
 library(readxl)
 listingsAll <- read.csv("dc_listings_exam2018_v2.csv")
 ```
 
-################################################################################ 
+################################################################################  
+# 1. Bar Chart (8pts)
+# Make a clustered (side-by-side) bar chart to show the average price for each 
+# property type and room type. See Q1_bar.png for the screenshot.
+#   - Filter the Property type by "Apartment", "Condominium", "House", "Townhouse"
+#   - Filter the price <= 1000
+#   - Use the RColor Brewer palette "Blues".
+#   - Use size 8 font for the caption and size 10 for the subtitle
+#   - Remove the gridlines for the x-axis
+#   - Use theme_minimal()
 
-1. Bar Chart (8pts)
-===================
 
-Make a clustered (side-by-side) bar chart to show the average price for each
-============================================================================
-
-property type and room type. See Q1\_bar.png for the screenshot.
-================================================================
-
-- Filter the Property type by "Apartment", "Condominium", "House", "Townhouse"
-==============================================================================
-
-- Filter the price &lt;= 1000
-=============================
-
-- Use the RColor Brewer palette "Blues".
-========================================
-
-- Use size 8 font for the caption and size 10 for the subtitle
-==============================================================
-
-- Remove the gridlines for the x-axis
-=====================================
-
-- Use theme\_minimal()
-======================
-
-``` r
+```r
 listingsAll%>%
   filter(property_type%in%c("Apartment","Condominium","House","Townhouse"))%>%
   filter(price<=1000)%>%
@@ -110,44 +92,25 @@ listingsAll%>%
         plot.caption=element_text(size=8))
 ```
 
-![](data_visualization_for_Airbnb_data_files/figure-markdown_github/unnamed-chunk-2-1.png)
+![](data_visualization_for_Airbnb_data_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
 
-################################################################################ 
 
-2. Scatterplot (8pts)
-=====================
 
-Make a scatterplot of price and the accomodates variable to see the
-===================================================================
+################################################################################  
+# 2. Scatterplot (8pts)
+# Make a scatterplot of price and the accomodates variable to see the 
+# relationship between price and maximum guests. See Q2_scatterplot.png for the screenshot.
+#   - Filter the Property type by "Apartment", "Condominium", "House", "Townhouse"
+#   - Color the points by the room type
+#   - Use the following colors for the room types: "royalblue", "grey60", "mediumpurple. 
+#   - Use size 8 font for the caption and size 10 for the subtitle
+#   - Use alpha = 0.5 for the transparency
+#   - Change the labels on the y-axis to be the character "$1,000", "$2,000", etc.
+#   - Change the breaks on the x-axis
+#   - Use theme_minimal()
 
-relationship between price and maximum guests. See Q2\_scatterplot.png for the screenshot.
-==========================================================================================
 
-- Filter the Property type by "Apartment", "Condominium", "House", "Townhouse"
-==============================================================================
-
-- Color the points by the room type
-===================================
-
-- Use the following colors for the room types: "royalblue", "grey60", "mediumpurple.
-====================================================================================
-
-- Use size 8 font for the caption and size 10 for the subtitle
-==============================================================
-
-- Use alpha = 0.5 for the transparency
-======================================
-
-- Change the labels on the y-axis to be the character "$1,000", "$2,000", etc.
-==============================================================================
-
-- Change the breaks on the x-axis
-=================================
-
-- Use theme\_minimal()
-======================
-
-``` r
+```r
 listingsAll%>%
   filter(property_type%in%c("Apartment","Condominium","House","Townhouse"))%>%
   ggplot(aes(x=accommodates,y=price))+
@@ -176,41 +139,30 @@ listingsAll%>%
         plot.caption=element_text(size=8))
 ```
 
-![](data_visualization_for_Airbnb_data_files/figure-markdown_github/unnamed-chunk-3-1.png)
+![](data_visualization_for_Airbnb_data_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+  
+  
 
-################################################################################ 
 
-3. Distributions (8pts)
-=======================
 
-Compare the distribution of prices for each property type using boxplots.
-=========================================================================
 
-There should be a different box for each value of property type, and the points
-===============================================================================
 
-should be on the plot as well. See Q3\_boxplot.png for the screenshot.
-======================================================================
+  
+################################################################################  
+# 3. Distributions (8pts)
+#  Compare the distribution of prices for each property type using boxplots.
+# There should be a different box for each value of property type, and the points
+# should be on the plot as well. See Q3_boxplot.png for the screenshot.
+#   - Filter the Property type by "Apartment", "Condominium", "House", "Townhouse"
+#   - Filter the price <= 1000
+#   - Use the colors "lightsteelblue" and "steelblue" for the boxplot colors and the points respectively 
+#   - Make the boxplot transparency 0.5, no outliers
+#   - Make the point transparency 0.05
+#   - Use size 8 font for the caption and size 10 for the subtitle
 
-- Filter the Property type by "Apartment", "Condominium", "House", "Townhouse"
-==============================================================================
 
-- Filter the price &lt;= 1000
-=============================
 
-- Use the colors "lightsteelblue" and "steelblue" for the boxplot colors and the points respectively
-====================================================================================================
-
-- Make the boxplot transparency 0.5, no outliers
-================================================
-
-- Make the point transparency 0.05
-==================================
-
-- Use size 8 font for the caption and size 10 for the subtitle
-==============================================================
-
-``` r
+```r
   listingsAll%>%
   filter(property_type%in%c("Apartment","Condominium","House","Townhouse"))%>%
   filter(price<=1000)%>%
@@ -236,35 +188,24 @@ should be on the plot as well. See Q3\_boxplot.png for the screenshot.
        caption="Source: Inside Airbnb")
 ```
 
-![](data_visualization_for_Airbnb_data_files/figure-markdown_github/unnamed-chunk-4-1.png)
+![](data_visualization_for_Airbnb_data_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
-################################################################################ 
 
-4. Heatmap (8pts)
-=================
 
-Compare the number of listings of each property type and room type
-==================================================================
 
-using a heatmap. See Q4\_heatmap.png for the screenshot.
-========================================================
+################################################################################  
+# 4. Heatmap (8pts)
+#  Compare the number of listings of each property type and room type 
+# using a heatmap. See Q4_heatmap.png for the screenshot.
+#   - Use the colors "white" and "royalblue" as the low and high values
+#   - Use size 8 font for the caption and size 10 for the subtitle
+#   - Place the legend on the right-hand side
+#   - Reorder the y-axis by the total number of listings
+#   - Remove NAs
 
-- Use the colors "white" and "royalblue" as the low and high values
-===================================================================
 
-- Use size 8 font for the caption and size 10 for the subtitle
-==============================================================
 
-- Place the legend on the right-hand side
-=========================================
-
-- Reorder the y-axis by the total number of listings
-====================================================
-
-- Remove NAs
-============
-
-``` r
+```r
 listingsAll%>%
   group_by(property_type,room_type)%>%
   count()%>%
@@ -292,58 +233,33 @@ listingsAll%>%
         plot.caption=element_text(size=8))
 ```
 
-![](data_visualization_for_Airbnb_data_files/figure-markdown_github/unnamed-chunk-5-1.png)
+![](data_visualization_for_Airbnb_data_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
-################################################################################ 
 
-5. Insight (8pts)
-=================
 
-The following question asks you to come up with one insight on specific
-=======================================================================
 
-elements of the Airbnb data. This chart will be graded according to the following dimensions:
-=============================================================================================
 
-- Is the chart technically correct? - 4 pts
-===========================================
+################################################################################  
+# 5. Insight (8pts)
+# The following question asks you to come up with one insight on specific 
+# elements of the Airbnb data. This chart will be graded according to the following dimensions:
+# - Is the chart technically correct? - 4 pts
+#   - Does it contain data errors?
+#   - Does it contain the appropriate elements?
+# - Is your conclusion sound? - 2pt
+# -	Is the graph attractive? - 1pt
+# - How sophisticated is your graph? - 1pt
 
-- Does it contain data errors?
-==============================
+################################################################################  
+# Prompt:
+# I am considering listing a 1-bed, 1-bath property on Airbnb, and I 
+# want to know what elements of the listing are associated with high 
+# reviews. Tell me something useful about the relationship between 
+# review score and price, cleaning_fee, guests, extra people, 
+# max accommodations, room type, bed type and/or neighborhood.
 
-- Does it contain the appropriate elements?
-===========================================
 
-- Is your conclusion sound? - 2pt
-=================================
-
-- Is the graph attractive? - 1pt
-================================
-
-- How sophisticated is your graph? - 1pt
-========================================
-
-################################################################################ 
-
-Prompt:
-=======
-
-I am considering listing a 1-bed, 1-bath property on Airbnb, and I
-==================================================================
-
-want to know what elements of the listing are associated with high
-==================================================================
-
-reviews. Tell me something useful about the relationship between
-================================================================
-
-review score and price, cleaning\_fee, guests, extra people,
-============================================================
-
-max accommodations, room type, bed type and/or neighborhood.
-============================================================
-
-``` r
+```r
 listingsAll%>%
   ggplot(aes(x=room_type,y=review_scores_rating))+
   geom_boxplot(fill="lightsteelblue",alpha=0.5,outlier.shape=NA)+
@@ -364,13 +280,14 @@ listingsAll%>%
        caption="Source: Inside Airbnb")
 ```
 
-    ## Warning: Removed 2207 rows containing non-finite values (stat_boxplot).
+```
+## Warning: Removed 2207 rows containing non-finite values (stat_boxplot).
+```
 
-![](data_visualization_for_Airbnb_data_files/figure-markdown_github/unnamed-chunk-6-1.png) \# shared room's review is lower than the other two
+![](data_visualization_for_Airbnb_data_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+# shared room's review is lower than the other two
+  
 
-################################################################################ 
-
-EXAM END
-========
-
+################################################################################  
+#EXAM END
 ################################################################################
