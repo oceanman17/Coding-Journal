@@ -2,7 +2,9 @@
 title: "Data Visualization Final Exam"
 author: "Kelin Pan"
 date: "October 8, 2018"
-output: rmarkdown::github_document
+output: 
+  html_document:
+    keep_md: true
 ---
 
 ```{r setup, include=FALSE}
