@@ -1,1 +1,1 @@
-# daily-exercise
+# code-journal
