@@ -1,0 +1,149 @@
+---
+title: "Group Project"
+author: "Team 12"
+date: "August 20, 2018"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+##Introduction
+Bike sharing systems are a new generation of traditional bike rentals where the whole process from membership,rental and return back has become automatic. Through these systems, user is able to easily rent a bike from a particular position and return back to another position. This dataset contains the hourly and daily count of rental bikes between years 2011 and 2012 in Capital bikeshare system in Washington, DC with the corresponding weather and seasonal information. So, We want to learn about the factors affecting bicycles and predict the count of bicycles in certain specific influencing factors.
+We got the data set from https://www.kaggle.com/marklvl/bike-sharing-dataset/home, and the original source of this data is http://capitalbikeshare.com/system-data.The data dimension is 17379 observations and 17 variables. See table below for definitions of all the variables.
+
+```{r,echo=F}
+a<-tibble::tibble(
+  variable=c("instant","dteday","season","yr","mnth","hr","holiday","weekday","workingday","weathersit","temp","atemp","hum","windspeed","casual","registered","cnt"),
+  description=c("Record index","Date","season(1:springer,2:summer,3:fall,4:winter)","Year(0: 2011, 1:2012)","Month (1 to 12)","Hour (0 to 23)","weather day is holiday or not (extracted from Holiday Schedule)","Day of the week","If day is neither weekend nor holiday is 1, otherwise is 0.","1: Clear, Few clouds, Partly cloudy, Partly cloudy
+2: Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist
+3: Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds
+4: Heavy Rain + Ice Pallets + Thunderstorm + Mist, Snow + Fog","Normalized temperature in Celsius. The values are derived via (t-t_min)/(t_max-t_min), t_min=-8, t_max=+39 (only in hourly scale)","Normalized feeling temperature in Celsius. The values are derived via (t-t_min)/(t_max-t_min), t_min=-16, t_max=+50 (only in hourly scale)","Normalized humidity. The values are divided to 100 (max)","Normalized wind speed. The values are divided to 67 (max)","count of casual users","count of registered users","count of total rental bikes including both casual and registered")
+)
+b<-as.data.frame(a)
+b
+```
+
+##Data Cleaning and Exploratory Analysis
+```{r,echo=F}
+bike <- read.csv("C:/Users/panke/Downloads/WFU/R/Group Project/bike-sharing-dataset/Bike-Sharing-Dataset/hour.csv")
+#tidy data#
+checkNA <- apply(bike, 2, function(x)
+any(is.na(x)))
+#no missing value in this dataset#
+
+biketidy <- bike
+biketidy$temp <- biketidy$temp * 41
+biketidy$atemp <- biketidy$atemp * 50
+biketidy$hum <- biketidy$hum * 100
+biketidy$windspeed <- biketidy$windspeed * 67
+
+#distribution of variables
+hist(biketidy$cnt,main="Distribution of Sharing Bike Count")#highly right skewed
+hist(biketidy$temp,main="Distribution of Temperature")
+hist(biketidy$windspeed,main="Distribution of Windspped")
+
+## more people ride bike on working day
+biketidy %>%
+  ggplot()+
+  geom_col(mapping=aes(x=weathersit,y=cnt),na.rm=T)+
+  stat_summary(aes(x=weathersit,y=cnt),na.rm=T,fun.y="sum")+
+  facet_wrap(~workingday)
+
+## there does not seem to be much difference in total bike rides among weekdays
+biketidy%>%
+  ggplot(mapping=aes(x=as.factor(weekday),y=cnt))+
+  geom_col()
+
+## more people ride bikes on in summer and autum; not very few people ride bikes in winter
+biketidy %>%
+  ggplot()+
+  geom_col(mapping=aes(x=season,y=cnt),na.rm=T)+
+  stat_summary(aes(x=season,y=cnt),na.rm=T,fun.y="sum")
+
+
+## fewer people ride bikes during Janurary and Februrary
+biketidy%>%
+  ggplot(mapping=aes(x=as.factor(mnth),y=cnt))+
+  geom_col()
+
+
+## atemp and temp seem to have similar impact on cnt, so we use temp
+biketidy %>%
+  ggplot()+
+  geom_point(mapping=aes(x=atemp,y=cnt),color='yellow')+
+  geom_point(mapping=aes(x=temp,y=cnt),color='violet')
+```
+
+
+The count of bike-sharing is the most intuitive value to reflect the bicycle's sharing situation, so we chose it as the dependent variable. In addition, we found that social factors and natural factors such as different seasons, specific times, and different temperature, humidity and wind speeds have an impact on the bicycle's sharing situation. Therefore, in the exploratory analysis step, we will initially explore the impact of these variables on the quantity in different situations.
+We found that the distribution of bike sharing is highly right skewed. The most common temperature range is around ten and around 28. The more pleasant the weather, the more people ride. In bad weather conditions, basically no one is riding a bicycle. And more people ride on the day of work than rest days, but there does not seem to be much difference in total bike rides among weekdays. There are the most people riding in summer and autumn, but what puzzles us is that there are more count of bike sharing in the winter than that in spring. 
+
+```{r,echo=FALSE}
+#extract data in 2011#
+biketidy$dteday <- ymd(biketidy$dteday)
+date2011 <- as_date("2011-12-31")
+bike2011 <-
+biketidy[biketidy$dteday < date2011 | biketidy$dteday == date2011, ]
+
+#randomly select 75% data for train and 25% for test#
+index <- sample(1:nrow(bike2011), round(0.75 * nrow(bike2011)))
+train <- bike2011[index, ]
+test <- bike2011[-index, ]
+
+#build multi-linreg model#
+
+#choose season,hr,weekday,weathersit,temp,hum,windspeed for model1#
+reg<-lm(cnt~factor(season)+factor(hr)+factor(weekday)+factor(weathersit)+temp+hum+windspeed,data=train)
+summary(reg)
+
+#delete insignificant variables and bulid model2#
+reg1<-lm(cnt~factor(season)+factor(hr)+temp+hum+windspeed,data=train)
+summary(reg)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(reg)
+#to make normality better, transform cnt with sqrt and build model3#
+reg2<-lm(sqrt(cnt)~factor(season)+factor(hr)+temp+hum+windspeed,data=train)
+summary(reg2)
+layout(matrix(c(1,2,3,4),2,2)) 
+plot(reg2)
+
+#use test dataset to predict cnt and compute MSE to check our model#
+pred_cnt <- predict(reg2,test)
+MSE.lm <- sum((pred_cnt - sqrt(test$cnt))^2)/nrow(test)
+MSE.lm #not too bad#
+
+#real output vs predicted output#
+plot(sqrt(test$cnt),pred_cnt,col='red',main='Real vs predicted LM',pch=19,cex=0.7)
+abline(0,1,col="blue",lwd=2)
+
+#use regression model to predict cnt in year 2012#
+date2012 <- as_date("2012-12-31")
+bike2012<-biketidy[biketidy$dteday>date2011 & biketidy$dteday<date2012|biketidy$dteday==date2012,]
+predict_2012 <- predict(reg2,bike2012)
+MSE.predict <- sum((predict_2012- sqrt(bike2012$cnt))^2)/nrow(bike2012)
+MSE.predict
+plot(sqrt(bike2012$cnt),predict_2012 ,col='red',main='Real vs predicted LM1',pch=19,cex=0.7)
+abline(0,1,col="blue",lwd=2)
+```
+
+##Methodology
+**model**
+In this step, we need to establish the regression and do some predictions, so we extract the data in year 2011 and used the sample function to extract 75% data from the data frame so that we could generate the train data and the test data for linear regression.
+In our first regression model, we choose variables season,hr,weekday,weathersit,temp,hum,windspeed as our explanatory variables and count as our dependent variables. We didn't choose all the variables because we found that the dteday, month and season are actually the same type of time variable, so we only chose the season. Similarly, holiday, weekday and workingday are the same variables which are used for holiday situations, so we only chose weekday. When we made the first model, we found that the adjusted R square was 0.6792, although it is acceptable but the model still has a lot of room for improvement. In the coefficient table, the p values of weekday are almost larger than 0.05 which means that the correlation of weekdays and count is not significant, so as to variable weathersit. So we did some adjustment to model 2.
+In model 2, we removed the insignificant variables weathersit and weekday and made a linear regression plot.We found that the normality table is still somewhat curved. So, when building model3, we changed the dependent variable to the square root of count. After improving this item, we were pleasantly surprised to find that the residual distribution in the normality table is basically close to the base line, which means that the standardized residual is basically close to the normal distribution. So we can say that we got a relatively ideal linear regression model.
+**predict**
+In this step, we used this model to compare the actual count of the test dataset with the count calculated from the model and calculated the MSE. We found that the MSE value is not very bad, within the acceptable range. And the graph "real with predicted" also shows that the error is small.
+
+
+
+
+
+
+
+
+
