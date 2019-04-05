@@ -1,0 +1,159 @@
+---
+title: "Tweet Text Mining"
+output:
+  pdf_document: default
+  html_document: default
+date: "August 16, 2018"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(readxl)
+library(tidyverse)
+library(lubridate)
+library(tm)
+library(wordcloud)
+library(janitor)
+
+# step 1: read data
+freddieGray <- read_excel("C:/Users/panke/Downloads/WFU/R/fianl exam practice/freddieGray.xlsx")
+# step 2: eliminate duplicated tweets
+fg <- freddieGray %>% distinct(Tweet, .keep_all = TRUE)
+```
+
+```{r}
+# step 3: write function (use lubridate)
+tweetHour <- function(x) {
+  hr <- hour(x)
+  if (hr < 12) {
+    return("Morning")
+  } else if (hr < 17) {
+    return("Afternoon")
+  } else {
+    return("Evening")
+  }
+}
+
+# test function
+tweetHour("2015-04-26 12:50:21")
+```
+
+```{r}
+# works well move on to for loop
+
+# step 3: write loop to apply function
+# create input with small data to test if this loop works faster
+input <- c("2015-04-16 16:26:56", "2015-04-16 07:26:56", "2015-04-16 19:26:56")
+output <- vector("character", length(input))
+
+for (i in seq_along(input)) {
+  output[[i]] <- tweetHour(input[[i]])
+}
+
+# check results
+output
+```
+
+```{r}
+# works well 
+
+# put loop inside function for efficiency and use the fg data
+input <- fg$`Tweet Date (UTC)`
+output <- vector("character", length(input))
+
+for (i in seq_along(input)) {
+  
+  tweetHour <- function(x) {
+    hr <- hour(x)
+    if (hr < 12) {
+      return("Morning")
+    } else if (hr < 17) {
+      return("Afternoon")
+    } else {
+      return("Evening")
+    }
+  }
+  
+  output[[i]] <- tweetHour(input[[i]])
+  }
+
+# step 4: write loop to count how many tweets in morning, afternoon, evening
+m = 0
+a = 0
+e = 0
+
+for (i in seq_along(output)) {
+   if(output[[i]] == "Morning") {m=m+1}
+  else if(output[[i]] == "Afternoon") {a=a+1}
+  else{e=e+1}
+  
+}
+
+result <- c(Morning = m, Afternoon = a, Evening = e)
+result
+```
+
+```{r}
+# step 5: use transformation & visualization to illustrate differences in number of messages across message type
+variables <- c("Vertex 1", "Vertex 2", "Latitude", "Longitude")
+
+fgT <- fg  %>%
+  remove_empty(., which = "cols") %>%
+  mutate(., `Time of Day` = output) %>%
+  select(., one_of(variables),Tweet,`Tweet Date (UTC)`, `Time of Day`,
+         Relationship) 
+
+ggplot(data = fgT) +
+  geom_bar(mapping = aes(x = `Time of Day`, fill = Relationship),
+                         position = "dodge") + coord_flip()
+```
+
+```{r}
+# more mentions and tweets are posted in general, when compared to replies to
+# retweets are recorded as mentions, this could explain why we have so many mentions in the data
+
+# check number of messages over time--do we see any day patterns?
+fgD <- fgT %>% 
+  count(day(`Tweet Date (UTC)`))
+colnames(fgD) <- c("Day in April 2015", "Number of Messages")
+
+ggplot(data = fgD) +
+  geom_line(mapping = aes(x = `Day in April 2015`, y = `Number of Messages`), color = "red")+
+  scale_x_continuous(name = "Day in April 2015", breaks = c(14:30))
+```
+
+```{r}
+# spike in number of messages on days 20, 23, 24, and 30
+# Freedie Gray died on the 12 and so protests reach a peak (it seems) about a week after the incident takes place
+
+# step 6: what words appear the most in messages about death, police, and violence
+words <- c("police", "death", "die", "violence")
+fgT$Tweet<- str_to_lower(fgT$Tweet) 
+usableText=str_replace_all(fgT$Tweet,"[^[:graph:]]", " ") 
+
+(fgP=fgT %>% filter(str_detect(usableText, "police")))
+```
+
+```{r}
+(fgDD=fgT %>% filter(str_detect(fgT$Tweet, "death")))
+```
+
+```{r}
+fgWC <- rbind(fgP, fgDD)
+      
+treat_corpus <- Corpus(VectorSource(fgWC$Tweet)) 
+treat_corpus <- tm_map(treat_corpus, removePunctuation) 
+treat_corpus <- tm_map(treat_corpus, removeNumbers) 
+treat_corpus <- tm_map(treat_corpus, stripWhitespace) 
+treat_corpus <- tm_map(treat_corpus, removeWords, stopwords("english")) 
+treat_corpus <- tm_map(treat_corpus, removeWords, c("freddiegray", "police", "death")) 
+
+#tm_map(treat_corpus, function(x) iconv(enc2utf8(x), sub = "byte"))
+#tm_map(treat_corpus, function(x) iconv(x, to='UTF-8-MAC', sub='byte'))
+#wordcloud(treat_corpus, max.words=100, min.freq=5, random.order = F, colors=brewer.pal(8, "Dark2")) 
+```
+
