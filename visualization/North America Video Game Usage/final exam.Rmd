@@ -1,0 +1,116 @@
+---
+title: "Final Exam"
+author: "Kelin Pan"
+date: "August 22, 2018"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r, echo=T}
+library(tidyverse)
+library(stringr)
+library(lubridate)
+```
+
+##Discussion
+
+In this report, I examined the data of video games provided by my boss Doc B which shows the sales condition and users ranks from the year 1980 to year 2018. Results show that Palcom company has the highest mean of global sales although it only published one game. I also find that action games have the largest total sales in North America region, which means this kind of game is extremely popular among this area. What's more, I also used regular expression to find some key words about games names of particular game companies and used function and for loop the calculate the publishers with video game sales above the median value. Below I will illustrate my code and provide additional details about my analysis.
+
+```{r,echo=T}
+vg<-read.csv("C:/Users/panke/Downloads/WFU/R/final exam/videoGame.csv")
+summary(vg)
+
+#plot 1#
+a<-vg%>%group_by(Publisher)%>%
+  summarise(mean_global_sales=mean(Global_Sales,na.rm=T))%>%
+  filter(mean_global_sales>=1)
+
+ggplot(data=a)+
+  geom_bar(aes(x=Publisher,y=mean_global_sales),stat="identity",position="dodge")+
+  coord_flip()
+
+#plot 2#
+b<-vg%>%
+  group_by(Genre)%>%
+  summarise(sum_nasales=sum(NA_Sales,na.rm=T))
+ggplot(b)+
+  geom_bar(aes(x=Genre,y=sum_nasales),stat="identity")+
+  coord_flip()
+
+#plot 3#
+c<-vg%>%
+  group_by(Year_of_Release)%>%
+  summarise(sum_global_sales=sum(Global_Sales,na.rm=T))
+
+plot(x=c$Year_of_Release,y=c$sum_global_sales,main="Total Global Sales with Year")
+
+palcom <- vg[grepl('palcom', vg$Publisher, ignore.case = TRUE),]
+palcom
+g<-sum(str_detect(vg$Publisher, fixed("Red Orb",ignore_case=TRUE)))
+g
+Red_orb <- vg[grepl('Red Orb', vg$Publisher, ignore.case = TRUE),]
+Red_orb
+d<-count(vg,Publisher)
+d<-arrange(d,desc(n))
+d
+electronic_arts<-vg[grepl('electronic arts', vg$Publisher, ignore.case = TRUE),]
+h<-sum(str_detect(vg$Name,fixed("fifa",ignore_case=T)))
+h
+```
+
+##Visualization, Transformation, Wrangling I & II
+In this step, I find that the company Palcom has the largest mean global sales and Valve Software has the smallest mean global sales. As for genres, action games are the best selling games in North America area and Strategy games seem not to be popular. Finally, I plotted the relationship between year and total global sales and I find that with the trend of time, the total global sales increased, and it peaked at 2008 and 2009. After that, the total sales dropped dramatically and reached the lowest in 2018 year which means the sales of games globally is not good.
+After that, I used stringr to find some key words in the data set. Because I find that the Palcom is the best seller, so I want to know what game it has. And I found that there was only a game called teenage mutant ninja turtles which is amazing. And I also find that there are 157 games containing "fifa".
+
+```{r,echo=T}
+median(vg$NA_Sales,na.rm=T)
+
+md<-function(x){
+  if(x>0.08){
+    return("above")
+  }else if(x==0.08){
+    return("equal")
+  }else{
+    return("below")
+  }
+}
+
+md(vg$NA_Sales[5581])
+
+n=1
+output<-vector("integer",length=1)
+for(i in seq_along(vg$NA_Sales)){
+  if(md(vg$NA_Sales[[i]])=="above"){
+    output<-n
+    n<-n+1
+  }else{
+    n<-n
+  }
+}
+output
+
+vg2<-filter(vg,NA_Sales>0.08)
+vg_number_publisher<-vg2%>%count(Publisher)%>%arrange(desc(n))
+
+vg3<-vg%>%group_by(Year_of_Release,Genre,Publisher)%>%
+  summarise(total_sales=sum(Global_Sales,na.rm=T))
+vg3
+ggplot(dat=vg3)+
+  geom_bar(aes(x=Genre,y=total_sales),stat="identity")+
+  facet_wrap(~Year_of_Release,nrow=4)+
+  coord_flip()
+
+vg_nintendo2006<-filter(vg3,Year_of_Release==2006&Publisher=="Nintendo"&Genre=="Sports")
+e<-sum(vg_nintendo2006$total_sales)
+e
+vg2009<-filter(vg3,Year_of_Release==2009&Publisher!="Nintendo"&Genre=="Sports")
+f<-sum(vg2009$total_sales)
+f
+```
+
+##Wrangling III, Functions, Vectors, Iterations
+I used the function I created to calculate the number of publishers with video game sales above the median and I find that there are 7994 above. But in the data, there are some replicated publishers, so I count and find that there are 263 publishers with above median sales. I also find the variations in video games with genre and year. And I find that sports video games released in 2006 by Nintendo generated more global sales than their 2009 counterparts.
+
+
