@@ -1,0 +1,322 @@
+---
+title: "Colombia Healthcare System Report"
+author: "Kelin Pan"
+date: "September 19, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=T)
+library(tidyverse)
+library(readxl)
+```
+
+## Introduction
+
+Colombia, referred as Republic of Colombia, is a sovereign state country situated in the northwest of South America. Colombia is a medium-powered country and the fourth largest economy in Latin America with upper middle level income. Although Colombia's coverage of the health security system in the 1980s was only 21%, it has reached 96% in recent years. I learned from Wikipedia that Colombia ranks 22nd on the World Health Organization's list of the best healthcare systems. Therefore, this report will explore the indicator of the premium healthcare system in Colombia and the reasons of it.
+
+***
+\pagebreak
+
+## Data Description
+
+As is mentioned before, Colombia is an upper middle level income country. So, I select Dominica Republic, Peru and Ecuador as its contrasts, because those three countries are all upper middle level income country and all from Latin America. I also choose USA because it is a developed country. The indicators I choose include neonatal mortality and the rate of HIV infection among women over the age of 15 because these two ratios reflect basic medical care and infectious disease control. In addition, I choose medical expenditure and GDP, because these two can reflect the importance healthcare system in Colombia.
+
+***
+\pagebreak
+
+## Insight 1
+```{r, fig.height=8, fig.width=10}
+wdi <- read.csv("C:/Users/panke/Downloads/WFU/data visualization/midterm/Midterm_WDI_2018.csv")
+
+country_meta <-
+  read_excel("C:/Users/panke/Downloads/WFU/data visualization/midterm/Data_Extract_From_World_Development_Indicators_Metadata.xlsx",
+             sheet = "Country - Metadata")
+country_detail <- country_meta %>%
+  select(Code, `Long Name`, `Income Group`, Region) %>%
+  filter(`Income Group` == "Upper middle income" &
+           Region == "Latin America & Caribbean") %>%
+  filter(Code %in% c("COL", "DOM", "ECU", "PER"))
+
+wdi %>%
+  filter(Country.Code %in% c("COL", "DOM", "ECU", "PER","USA") &
+           Series.Code == "SP.DYN.IMRT.IN") %>%
+  select(-X2017..YR2017.) %>%
+  gather(
+    "X2007..YR2007.",
+    "X2008..YR2008.",
+    "X2009..YR2009.",
+    "X2010..YR2010.",
+    "X2011..YR2011.",
+    "X2012..YR2012.",
+    "X2013..YR2013.",
+    "X2014..YR2014.",
+    "X2015..YR2015.",
+    "X2016..YR2016.",
+    key = "year",
+    value = "Value"
+  ) %>%
+  mutate(Year = paste(substr(year, 2, 5))) %>%
+  select(-c("year", "Series.Code")) %>%
+  spread(key = "Series.Name", value = "Value") %>%
+  ggplot(aes(x = Year, y = `Mortality rate, infant (per 1,000 live births)`)) +
+  geom_line(aes(color = Country.Name, group = Country.Name), size = 0.3) +
+  geom_point(colour = "white", size = 5) +
+  geom_text(aes(label =`Mortality rate, infant (per 1,000 live births)`)) +
+  scale_y_continuous(breaks = seq(15, 30, by = 5)) +
+  labs(
+    x = "Year",
+    y = "Mortality Rate of Infant(per 1000 live births)",
+    title = "Mortality Rate of Infant in 5 Countries in 10 Years",
+    color = "Country",
+    caption="Source: WDI Data"
+  ) +
+  theme(
+    legend.position = "bottom",
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 18),
+    panel.border = element_blank(),
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid.minor.y = element_line(linetype = 3, color = "grey95"),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = "grey95"),
+    panel.grid.major.x = element_line(color = "grey98"),
+    axis.title = element_text(face = "bold"),
+    plot.caption = element_text(face = "italic")
+  )
+```
+
+### Key Observations & Takeaways
+
+1.	Among those five countries, with the years went by, the mortality rate decreased, which meant that general level of healthcare was getting better in past years.
+
+2.	The neonatal mortality rate in these Latin American countries was much higher than in the United States, which meant that there was still a large gap between developing countries and developed countries as for healthcare system.
+
+3.	Among those four countries in Latin America area, Colombia had the lowest rate of infant mortality from 2007 to 2009 and had the second lowest neonatal mortality rate in the rest years. And the rate of Colombia was far lower than that of Dominica and Ecuador. It meant that in Latin America, Columbia had relatively low mortality rate of infant, which represented it had better fundamental healthcare system.
+
+
+***
+\pagebreak
+
+## Insight 2
+```{r, fig.width=10, fig.height=8}
+a <- wdi %>%
+  filter(Country.Code %in% c("COL", "DOM", "ECU", "PER") &
+           Series.Code == "SH.DYN.AIDS.FE.ZS") %>%
+  select(-c("X2017..YR2017.", "X2016..YR2016.")) %>%
+  gather(
+    "X2007..YR2007.",
+    "X2008..YR2008.",
+    "X2009..YR2009.",
+    "X2010..YR2010.",
+    "X2011..YR2011.",
+    "X2012..YR2012.",
+    "X2013..YR2013.",
+    "X2014..YR2014.",
+    "X2015..YR2015.",
+    key = "year",
+    value = "Value"
+  ) %>%
+  mutate(Year = paste(substr(year, 2, 5))) %>%
+  select(-c("year", "Series.Code")) %>%
+  spread(key = "Series.Name", value = "Value")
+
+b <- wdi %>%
+  filter(Country.Code %in% c("COL", "DOM", "ECU", "PER") &
+           Series.Code == "SH.XPD.GHED.GD.ZS") %>%
+  select(-c("X2017..YR2017.", "X2016..YR2016.")) %>%
+  gather(
+    "X2007..YR2007.",
+    "X2008..YR2008.",
+    "X2009..YR2009.",
+    "X2010..YR2010.",
+    "X2011..YR2011.",
+    "X2012..YR2012.",
+    "X2013..YR2013.",
+    "X2014..YR2014.",
+    "X2015..YR2015.",
+    key = "year",
+    value = "Value"
+  ) %>%
+  mutate(Year = paste(substr(year, 2, 5))) %>%
+  select(-c("year", "Series.Code")) %>%
+  spread(key = "Series.Name", value = "Value") %>%
+  select(`Domestic general government health expenditure (% of GDP)`)
+
+c <- cbind(a, b)
+
+ggplot(c,
+       aes(x = Year, y = `Women's share of population ages 15+ living with HIV (%)`)) +
+  geom_point(
+    aes(size = `Domestic general government health expenditure (% of GDP)`, color =
+          Country.Name),
+    alpha = 0.5
+  ) +
+  scale_y_continuous(breaks = seq(20, 50, by = 10),
+                     labels = c("20%", "30%", "40%", "50%")) +
+  theme_bw() +
+  labs(
+    x = "Year",
+    y = "Women's Share of Population ages 15+ with HIV",
+    title = "Women's Share of Population Ages 15+ with HIV",
+    size = "Health Expenditure(% of GDP)",
+    color = "Country",
+    caption="Source: WDI Data"
+  ) +
+  theme(
+    legend.position = "bottom",
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 7),
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 18),
+    panel.border = element_blank(),
+    panel.grid.minor.y = element_line(linetype = 3, color = "grey95"),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = "grey95"),
+    panel.grid.major.x = element_line(color = "grey98"),
+    axis.title = element_text(face = "bold"),
+    plot.caption = element_text(face = "italic")
+  )
+```
+
+### Key Observations & Takeaways
+
+A major form of transmission of AIDS is mother-to-child transmission, so women's share of population ages 15+ with HIV is a good indicator to explore the control level of HIV in these countries. And in this step, I introduced indicator "Domestic general government health expenditure (% of GDP)" to better find the relationship between them.
+
+1.	Only the share of population ages 15+ with HIV of Colombia in these years has decreased gradually. For the other three countries, this ratio was either fluctuating or rising slowly. It means that the government of Colombia has put it in place to control AIDS, and this control was effective to some extent.
+
+2.	Colombia had the lowest women's share of population ages 15+ with HIV and the rate decreased to 20% in 2015. To my surprise, the rate of Dominica Republic was almost 50%, which means that one of two women older than 15 is a carrier of AIDS. 
+
+3.	It can be roughly seen from the graph that if the percentage of health expenditure of total GDP larger, the women's share ages 15+ with HIV is lower, which means that the expenditure of healthcare to some extent can decrease the rate of HIV.
+
+***
+\pagebreak
+
+## Insight 3
+```{r, fig.height=8, fig.width=10}
+wdi %>%
+  filter(Country.Code %in% c("COL", "DOM", "ECU", "PER","USA") &
+           Series.Code == "SH.XPD.GHED.GD.ZS") %>%
+  select(-c("X2017..YR2017.", "X2016..YR2016.")) %>%
+  gather(
+    "X2007..YR2007.",
+    "X2008..YR2008.",
+    "X2009..YR2009.",
+    "X2010..YR2010.",
+    "X2011..YR2011.",
+    "X2012..YR2012.",
+    "X2013..YR2013.",
+    "X2014..YR2014.",
+    "X2015..YR2015.",
+    key = "year",
+    value = "Value"
+  ) %>%
+  mutate(Year = paste(substr(year, 2, 5))) %>%
+  select(-c("year", "Series.Code")) %>%
+  spread(key = "Series.Name", value = "Value") %>%
+  ggplot(aes(x = Year, y = Country.Name)) +
+  geom_tile(aes(fill = `Domestic general government health expenditure (% of GDP)`),
+            color = "grey95") +
+  scale_fill_continuous("Health Expenditure(% of GDP)", low = "white", high =
+                          "blue") +
+  labs(title = "Percentage of Domestic Health Expenditure in GDP of 5 Countries", x =
+         "Year",
+       y = "Country",
+       caption="Source: WDI Data") +
+  theme_bw() +
+  theme(
+    legend.position = "bottom",
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 18),
+    panel.border = element_blank(),
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid.minor.y = element_line(linetype = 3, color = "grey95"),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = "grey95"),
+    panel.grid.major.x = element_line(color = "grey98"),
+    axis.title = element_text(face = "bold"),
+    plot.caption = element_text(face = "italic")
+  )
+```
+
+### Key Observations & Takeaways
+
+1.	America had the highest percentage of domestic health expenditure of total GDP and the rate was far higher than that of those Latin America countries in the past years, which means that these developing countries still need to build up their healthcare system.
+
+2.	In general, those counties have been putting more and more money of total GDP to healthcare industry in the past years. But in 2015, the rate of Colombia decreased due to some reasons.
+
+3.	Among the countries in Latin America, Colombia put the largest share of total GDP to healthcare system domestically, which could explain why it had low HIV infection rate and low neonatal mortality rate. 
+In general, this figure more intuitively reflects the government's altitude and effort on healthcare industry.
+
+***
+\pagebreak
+
+## Insight 4
+```{r, fig.height=8, fig.width=10}
+wdi %>%
+  filter(Country.Code %in% c("COL", "DOM", "ECU", "PER") &
+           Series.Code == "NY.GDP.MKTP.CD") %>%
+  gather(
+    "X2007..YR2007.",
+    "X2008..YR2008.",
+    "X2009..YR2009.",
+    "X2010..YR2010.",
+    "X2011..YR2011.",
+    "X2012..YR2012.",
+    "X2013..YR2013.",
+    "X2014..YR2014.",
+    "X2015..YR2015.",
+    "X2016..YR2016.",
+    "X2017..YR2017.",
+    key = "year",
+    value = "Value"
+  ) %>%
+  mutate(Year = paste(substr(year, 2, 5))) %>%
+  select(-c("year", "Series.Code")) %>%
+  spread(key = "Series.Name", value = "Value") %>%
+  mutate(GDP=`GDP (current US$)`/1000000000)%>%
+  ggplot(aes(x = Year, y = GDP)) +
+  geom_area(aes(fill=Country.Name,group=Country.Name))+
+  scale_fill_manual(breaks=c("Dominican Republic","Ecuador","Peru","Colombia"),
+                    values=c("violetred","yellow","wheat","olivedrab4")) +
+  theme_bw() +
+  labs(x="Year",y="GDP(billion $)",
+       title="GDP(billion $) among 4 Countries Over Years",
+       fill="Country",
+       caption="Source: WDI Data")+
+  theme(
+    legend.position = "bottom",
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 18),
+    panel.border = element_blank(),
+    panel.grid.minor.y = element_line(linetype = 3, color = "grey95"),
+    panel.grid.minor.x = element_blank(),
+    panel.grid.major.y = element_line(color = "grey95"),
+    panel.grid.major.x = element_line(color = "grey98"),
+    axis.title = element_text(face = "bold"),
+    plot.caption = element_text(face = "italic")
+  )
+```
+
+###Key Observations & Takeaways
+
+1.	In general, the total GDP of these four countries increased in the past ten years. As for Dominica, Ecuador and Peru, their GDP grew steadily without any large fluctuation. However, there were two significant declines of the GDP in Columbia in 2009 and 2015 respectively, and in 2017, it picked up. 
+
+2.	As it can be seen from the graph, the economy situation of these four Latin America countries encountered a bottleneck in year 2009 but in the following 5 years after 2009, it has grown dramatically and peaked in 2014. In 2015 and 2016, GDP across Latin America declined slightly, but Colombia's GDP declined particularly.
+
+3.	In these four countries, Colombia's GDP represents almost a half of the total GDP of the four countries, which means that Colombia's economic strength is much stronger than the other three countries. 
+
+
+***
+\pagebreak
+
+## Summary
+
+1.	Columbia has relatively the lowest neonatal mortality rate and lowest women's share of population age 15+ with HIV among the four countries in Latin America, which means that among upper middle level income countries, the healthcare system of Colombia is better and complete.
+
+2.	Compared with other developing countries in Latin America, the Colombian government does invest a large amount of money in the healthcare industry. Even in the economic downturn of the country in 2009 and 2015, there was no corresponding reduction in the control of HIV and the construction of basic healthcare system in Colombia (both neonatal mortality and HIV infection rates are decreasing). It means that Colombia does pay attention to the construction of healthcare system. 
+
+3.	Compared to USA horizontally, Colombia still has a long way to go on healthcare system. The development of the healthcare system depends not only on the expenditure, but also on the development of the other causes, such as cultural, science and education. Therefore, the development of healthcare system has a long way to go.
+
+Suggestions:
+Colombia is projected as one of Latin America's main destinations in terms of health tourism due to the quality of its health care professionals and a good number of institutions devoted to health. Therefore, Colombia can develop it into another form of tourism that will bring income to the whole country. In addition, Colombia can also promote the development of other industries through the developed healthcare system, such as medical education, thus driving the country's development as a whole.
